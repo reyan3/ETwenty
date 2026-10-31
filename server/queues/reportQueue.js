@@ -1,7 +1,9 @@
 import { Queue } from "bullmq";
 
-// Use process.env.REDIS_URL provided by Render
-export const connection = process.env.REDIS_URL;
+// Dynamically use Render's REDIS_URL in production, fallback to localhost only if local
+const connection = process.env.REDIS_URL 
+  ? process.env.REDIS_URL 
+  : { host: "127.0.0.1", port: 6379 };
 
-// Create the task queue
+// Task queue
 export const reportQueue = new Queue("report-processing-queue", { connection });
