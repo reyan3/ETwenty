@@ -78,7 +78,7 @@ function App() {
                 <Route path="*" element={<ErrorPage />} />
               </Routes></main>
             </Suspense>
-            <Footer className="relative z-1000 w-full bg-slate-900/80 backdrop-blur-2xl border-t border-slate-800 py-6"/>
+            <Footer/>
           </BrowserRouter>
         </ConfirmProvider>
       </ToastProvider>

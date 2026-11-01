@@ -3,7 +3,7 @@ import { ShieldCheck } from 'lucide-react'
 
 const Footer = () => {
   return (
-    <footer >
+    <footer  className="relative z-1000 w-full bg-slate-900/80 backdrop-blur-2xl border-t border-slate-800 py-6 " >
       
       {/* Subtle Background Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
