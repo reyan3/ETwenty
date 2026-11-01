@@ -1,4 +1,5 @@
 # 🚗 ETwenty
+Deployed Site - [ETwenty](https://etwenty-front.onrender.com/)
 
 > 🌍 E20 fuel compatibility for vehicles in India
 > ✅ Verified reports • 📍 Station risk insights • 🤖 AI-powered receipt checks
@@ -12,6 +13,18 @@ ETwenty is a web app for checking vehicle compatibility with E20 fuel, reporting
 - 🔎 **Receipt verification:** OCR extracts receipt details and checks the station name and date before marking a report as verified.
 - 📊 **Insights and maps:** Explore report statistics, station risk scores, and geographic report density.
 - 👤 **Account and moderation:** Sign in with Google, manage your reports, and use the admin dashboard to review, verify, or remove reports.
+
+## ETwenty Working Algorithm and Formulas
+
+<img width="1500" height="1000" alt="Refined risk scoring Etwenty" src="https://github.com/user-attachments/assets/5ac13fb1-e399-4953-926d-4532f0b6b3ab" />
+
+## 🖼️ Screenshots 
+<img width="1000" height="500" alt="Screenshot 2026-11-01 151857" src="https://github.com/user-attachments/assets/8ca907c4-dd8d-4ee9-9720-bca18cd401e8" />
+<img width="1000" height="500" alt="Screenshot 2026-11-01 151841" src="https://github.com/user-attachments/assets/073097f1-3f4c-4ecf-9035-49955ce95464" />
+<img width="1000" height="500" alt="Screenshot 2026-11-01 151927" src="https://github.com/user-attachments/assets/dab23faa-b8bc-4fc3-a57e-2fbe6e6920ff" />
+<img width="1000" height="500" alt="Screenshot 2026-11-01 151909" src="https://github.com/user-attachments/assets/4577569a-fbee-41e3-a236-77197c6866c0" />
+
+
 
 ## 🌟 At a glance
 
@@ -85,6 +98,7 @@ The queue offloads the CPU-/network-intensive receipt-verification work from the
 - **Interactive GIS dashboard:** The Leaflet map offers **2 modes**: a heat layer and clustered station markers. Marker clustering uses chunked loading to handle large station sets without rendering every marker as an ungrouped map element. The reported target is **60 FPS**; actual frame rate depends on device and dataset size.
 - **Lazy loading:** Route pages, the heatmap map, and dashboard charts are loaded on demand with React lazy loading and Suspense, reducing the initial bundle work.
 - **Admin verification page:** Authorized admins can review paginated reports, update verification status, and delete reports.
+
 
 ## 📄 Application pages
 
