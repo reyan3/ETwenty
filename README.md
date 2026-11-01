@@ -6,6 +6,9 @@ Deployed Site - [ETwenty](https://etwenty-front.onrender.com/)
 
 ETwenty is a web app for checking vehicle compatibility with E20 fuel, reporting fuel-related vehicle issues, and exploring verified reports and station risk across India. Users can submit a report with a receipt; an asynchronous OCR workflow checks the receipt and leaves reports needing judgment available for admin review.
 
+## Testing 
+```Unit testing done using Codex agent```
+
 ## ✨ Features
 
 - 🚗 **Vehicle compatibility:** Look up vehicle compatibility and get an AI-generated estimate.
@@ -13,6 +16,7 @@ ETwenty is a web app for checking vehicle compatibility with E20 fuel, reporting
 - 🔎 **Receipt verification:** OCR extracts receipt details and checks the station name and date before marking a report as verified.
 - 📊 **Insights and maps:** Explore report statistics, station risk scores, and geographic report density.
 - 👤 **Account and moderation:** Sign in with Google, manage your reports, and use the admin dashboard to review, verify, or remove reports.
+
 
 ## ETwenty Working Algorithm and Formulas
 
@@ -67,6 +71,66 @@ flowchart LR
 ```
 
 The client uses a shared Axios API client. Authenticated requests include the signed-in user's Firebase ID token; Express middleware verifies it, and admin endpoints also check the user's role in MongoDB.
+
+## 🎯 Problem Statement and Target Users
+
+### Who is ETwenty for?
+
+- **Vehicle owners:** Check E20 compatibility and understand the reliability of reported fuel-related issues.
+- **Used vehicle buyers:** Research vehicle compatibility and reported station issues before purchasing or refuelling.
+- **Community contributors:** Submit fuel-related reports with supporting receipts.
+- **Administrators:** Review, verify, and moderate community-submitted reports.
+
+### Problem
+
+Vehicle owners may struggle to find reliable, model-specific E20 compatibility information and trustworthy reports about fuel-related issues at petrol stations.
+
+ETwenty aims to make this information easier to access through compatibility estimates, receipt-assisted reports, and geographic insights.
+
+## 🔍 Existing Solutions and Competitive Analysis
+
+| Existing solution             | Strength                                      | ETwenty's differentiation                                        |
+| ----------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
+| Vehicle manufacturer websites | Authoritative compatibility information       | Combines compatibility lookup with community reports             |
+| FuelSaathi                    | Source-linked E20 compatibility catalogue     | Focuses on user-submitted fuel issues and station-level insights |
+| Moto Metric                   | Compatibility reports and vehicle comparisons | Adds community reporting, receipt verification, and moderation   |
+| Google Maps                   | General location and business discovery       | Adds fuel-issue reports and station risk indicators              |
+
+ETwenty complements official manufacturer information; it does not replace it.
+
+## ⚖️ Engineering Trade-offs
+
+| Decision                   | Benefit                                       | Trade-off                                              |
+| -------------------------- | --------------------------------------------- | ------------------------------------------------------ |
+| MongoDB                    | Flexible report schema and geospatial queries | Requires careful indexing and data validation          |
+| Firebase Authentication    | Simplifies Google sign-in                     | Introduces dependency on an external identity provider |
+| Gemini + Groq              | Multiple OCR providers                        | Different extraction quality, latency, and API limits  |
+| BullMQ + Redis             | Asynchronous OCR and retry support            | Additional infrastructure and operational complexity   |
+| Community reports          | Real-world local insights                     | Vulnerable to inaccurate or malicious submissions      |
+| AI compatibility estimates | Helps handle missing catalogue data           | Cannot guarantee manufacturer-approved compatibility   |
+
+## 🚧 Known Limitations and Unresolved Problems
+
+| Limitation                           | Current impact                                    | Planned solution                                                    |
+| ------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------- |
+| AI-generated compatibility estimates | May be inaccurate or unsupported                  | Prioritize manufacturer-sourced records and clearly label estimates |
+| Receipt OCR errors                   | Incorrect station names or dates may be extracted | Improve confidence thresholds and manual review                     |
+| Public receipt storage               | Potential exposure of personal information        | Use private storage, signed URLs, and retention policies            |
+| Limited report authenticity checks   | Receipts and reports may be manipulated           | Add duplicate detection and stronger moderation                     |
+| Station risk score limitations       | Sparse or biased reports may distort scores       | Add minimum sample sizes, confidence intervals, and time decay      |
+| My Reports lacks pagination          | Large user histories may become slow              | Implement server-side pagination                                    |
+| External service dependency          | Provider outages can interrupt features           | Add retries, circuit breakers, and graceful degradation             |
+
+## 🛡️ Fallback and Failure Handling
+
+| Failure                             | Fallback                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
+| Gemini OCR unavailable              | Retry supported models, then use Groq if configured                             |
+| Both OCR providers unavailable      | Keep report pending and allow admin review                                      |
+| Redis unavailable                   | Reject or defer report verification safely; do not claim verification succeeded |
+| Compatibility API unavailable       | Show an unavailable state and direct users to manufacturer sources              |
+| Maps or Places API unavailable      | Preserve report submission with manual station/location entry                   |
+| Authentication provider unavailable | Explain sign-in failure and preserve non-sensitive form data where possible     |
 
 ### Receipt submission and verification
 
