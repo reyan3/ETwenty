@@ -51,6 +51,9 @@ ETwenty is a web app for checking vehicle compatibility with E20 fuel, reporting
 | AI | Google Gemini for receipt OCR; Groq as an optional OCR fallback and for compatibility estimates |
 | Integrations | Google Maps Places for station search; OpenStreetMap tiles for the map |
 
+## Deployment 
+- Frontend And Backend : Render Free Tier
+- Redis : Upstash
 ## 🏗️ Architecture
 
 ```mermaid
