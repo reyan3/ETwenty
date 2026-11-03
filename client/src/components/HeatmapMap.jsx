@@ -87,7 +87,7 @@ const HeatmapMap = ({
   riskColors,
 }) => (
   <>
-    <div className="absolute top-4 right-4 z-1000 bg-slate-900/95 border border-slate-700/80 backdrop-blur-md shadow-xl rounded-xl p-1 flex gap-1">
+    <div className="absolute top-4 right-4 z-999 bg-slate-900/95 border border-slate-700/80 backdrop-blur-md shadow-xl rounded-xl p-1 flex gap-1">
       <button
         onClick={() => setViewMode("markers")}
         className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${

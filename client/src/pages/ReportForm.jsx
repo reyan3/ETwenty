@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { lazy, Suspense, useState, useMemo, useEffect } from "react";
 import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 const libraries = ["places"];
+const GasStationMap = lazy(() => import("../components/GasStationMap"));
 const COUNTRY_CODE = "IN";
 const VEHICLE_YEARS = Array.from({ length: 10 }, (_, i) => 2017 + i);
 const RECEIPT_IMAGE_TYPES = ["image/png", "image/jpeg"];
@@ -39,6 +40,10 @@ const ReportForm = () => {
   const [station, setStation] = useState(null);
   const [search, setSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [map, setMap] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [nearbyStations, setNearbyStations] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
 
   // New state for receipt file and preview
   const [receiptFile, setReceiptFile] = useState(null);
@@ -119,14 +124,19 @@ const ReportForm = () => {
     }
   };
 
-  const handlePlaceChanged = () => {
-    if (!autocomplete) return;
-    const place = autocomplete.getPlace();
+  const selectStationPlace = (place) => {
     if (!place || !place.geometry) {
       showToast(
         "Please select a valid station from the dropdown suggestions.",
         "info",
       );
+      return;
+    }
+
+    if (!place.types?.includes("gas_station")) {
+      setStation(null);
+      setSelectedDistrict("");
+      showToast("Please select a gas station from the suggestions.", "error");
       return;
     }
 
@@ -168,6 +178,94 @@ const ReportForm = () => {
       lat: place.geometry.location.lat(),
       lng: place.geometry.location.lng(),
     });
+  };
+
+  const handlePlaceChanged = () => {
+    if (!autocomplete) return;
+    selectStationPlace(autocomplete.getPlace());
+  };
+
+  const findNearbyStations = () => {
+    if (!navigator.geolocation) {
+      showToast("Location access is not available in this browser.", "error");
+      return;
+    }
+
+    setNearbyLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const location = { lat: coords.latitude, lng: coords.longitude };
+        setUserLocation(location);
+        map?.panTo(location);
+        map?.setZoom(14);
+
+        const service = new window.google.maps.places.PlacesService(
+          map || document.createElement("div"),
+        );
+        service.nearbySearch(
+          { location, radius: 5000, type: "gas_station" },
+          (results, status) => {
+            setNearbyLoading(false);
+            if (
+              status === window.google.maps.places.PlacesServiceStatus.OK &&
+              results
+            ) {
+              setNearbyStations(results);
+              if (results.length === 0) {
+                showToast("No nearby gas stations were found.", "info");
+              }
+              return;
+            }
+
+            if (
+              status ===
+              window.google.maps.places.PlacesServiceStatus.ZERO_RESULTS
+            ) {
+              setNearbyStations([]);
+              showToast("No nearby gas stations were found.", "info");
+              return;
+            }
+
+            showToast("Could not search for nearby gas stations.", "error");
+          },
+        );
+      },
+      (error) => {
+        setNearbyLoading(false);
+        const message =
+          error.code === error.PERMISSION_DENIED
+            ? "Allow location access to find nearby gas stations."
+            : "Could not get your location. Please try again.";
+        showToast(message, "error");
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  const selectNearbyStation = (placeId) => {
+    const service = new window.google.maps.places.PlacesService(
+      map || document.createElement("div"),
+    );
+    service.getDetails(
+      {
+        placeId,
+        fields: [
+          "address_components",
+          "geometry",
+          "name",
+          "place_id",
+          "formatted_address",
+          "types",
+        ],
+      },
+      (place, status) => {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK) {
+          showToast("Could not load the selected station.", "error");
+          return;
+        }
+        selectStationPlace(place);
+      },
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -264,8 +362,8 @@ const ReportForm = () => {
             Map services couldn’t be loaded
           </h1>
           <p className="mt-2 text-sm text-slate-400">
-            The report form needs Google Maps to select a petrol station.
-            Check your connection and try again.
+            The report form needs Google Maps to select a petrol station. Check
+            your connection and try again.
           </p>
           <button
             type="button"
@@ -370,7 +468,9 @@ const ReportForm = () => {
                   "name",
                   "place_id",
                   "formatted_address",
+                  "types",
                 ],
+                types: ["gas_station"],
               }}
             >
               <div className="relative">
@@ -387,6 +487,41 @@ const ReportForm = () => {
                 />
               </div>
             </Autocomplete>
+
+            <button
+              type="button"
+              onClick={findNearbyStations}
+              disabled={nearbyLoading}
+              className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-xs font-semibold text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {nearbyLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MapPin className="h-4 w-4" />
+              )}
+              {nearbyLoading
+                ? "Finding nearby stations..."
+                : "Show nearby gas stations"}
+            </button>
+
+            {userLocation && (
+              <Suspense
+                fallback={
+                  <div
+                    aria-label="Loading nearby gas station map"
+                    className="h-90 animate-pulse rounded-2xl border border-white/10 bg-slate-800/50"
+                  />
+                }
+              >
+                <GasStationMap
+                  userLocation={userLocation}
+                  nearbyStations={nearbyStations}
+                  station={station}
+                  onMapLoad={setMap}
+                  onSelectStation={selectNearbyStation}
+                />
+              </Suspense>
+            )}
 
             {station && (
               <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-start gap-2.5">
@@ -406,6 +541,7 @@ const ReportForm = () => {
               <Info className="w-3.5 h-3.5 shrink-0" />
               <span>
                 Select the exact fueling station where you experienced issues
+                and having fuel receipt
               </span>
             </div>
           </div>
@@ -556,7 +692,7 @@ const ReportForm = () => {
 
               <div>
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1 block">
-                  Mileage Drop (%)  <span className="text-red-500">*</span>
+                  Mileage Drop (%) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -576,7 +712,7 @@ const ReportForm = () => {
 
               <div>
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1 block">
-                  Repair Cost (₹)  <span className="text-red-500">*</span>
+                  Repair Cost (₹) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -627,7 +763,10 @@ const ReportForm = () => {
                   <Upload className="w-6 h-6 text-slate-400 group-hover:text-emerald-400 mb-2 transition-colors" />
                   <div className="text-[11px] sm:text-xs text-slate-300 font-medium leading-relaxed">
                     Click to upload receipt or drag & drop
-                    <p className="text-red-400 text-center text-[10px]">Please upload a valid image file (PNG, JPG, JPEG) and file size must be less than 5MB.</p>
+                    <p className="text-red-400 text-center text-[10px]">
+                      Please upload a valid image file (PNG, JPG, JPEG) and file
+                      size must be less than 5MB.
+                    </p>
                   </div>
                 </div>
                 <input

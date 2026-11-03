@@ -52,7 +52,7 @@ const Navbar = () => {
     <header className="fixed top-0 z-1000 w-full border-b border-white/10 bg-slate-950/40 backdrop-blur-md transition-colors duration-200">
       <div className="navbar max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 min-h-16 text-white">
         {/* Left: Branding & Mobile Drawer Toggle */}
-        <div className="navbar-start">
+        <div className="navbar-start gap-2">
           <div className="dropdown lg:hidden">
             <label
               tabIndex={0}
