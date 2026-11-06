@@ -239,7 +239,13 @@ export const startReportWorker = () => {
         throw err;
       }
     },
-    { connection, drainDelay: 30 },
+    {
+    connection,
+    concurrency: 1,
+    drainDelay: 60,         // Wait 60 seconds before polling an empty queue again
+    stalledInterval: 120000,  // Check for stalled jobs every 2 minutes instead of default frequency
+    maxStalledCount: 1,     // Minimize retry checks for failed background loops
+  },
   );
 
   worker.on("completed", (job) => {
