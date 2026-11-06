@@ -239,7 +239,7 @@ export const startReportWorker = () => {
         throw err;
       }
     },
-    { connection, drainDelay: 30 },
+    { connection },
   );
 
   worker.on("completed", (job) => {
