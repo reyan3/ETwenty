@@ -150,6 +150,7 @@ The queue offloads the CPU-/network-intensive receipt-verification work from the
 
 - **Firebase Storage:** Receipt images are stored in the configured Firebase Storage bucket; MongoDB stores the image reference and report data.
 - **Asynchronous OCR:** BullMQ queues receipt verification in Redis and a worker processes jobs separately from the API request.
+- **Redis idle polling:** The receipt worker waits up to 30 seconds for a job while idle, reducing repeated Redis polling; queued work wakes the waiting worker.
 - **Gemini with Groq fallback:** Gemini is tried first for receipt OCR. Groq is used as a fallback when its API key is configured. Groq also powers the compatibility estimate endpoint.
 - **Fuzzy station matching:** Station names are normalized for case, accents, punctuation, and word order. Token matching allows up to **20% edit distance** for tokens at least **4 characters** long.
 - **NoSQL input sanitization:** `express-mongo-sanitize` sanitizes request data to help prevent MongoDB operator and key injection.
